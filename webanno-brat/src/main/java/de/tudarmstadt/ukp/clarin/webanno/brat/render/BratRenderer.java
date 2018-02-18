@@ -76,6 +76,7 @@ import de.tudarmstadt.ukp.clarin.webanno.model.AnnotationFeature;
 import de.tudarmstadt.ukp.clarin.webanno.model.AnnotationLayer;
 import de.tudarmstadt.ukp.clarin.webanno.model.LinkMode;
 import de.tudarmstadt.ukp.clarin.webanno.model.ScriptDirection;
+import de.tudarmstadt.ukp.clarin.webanno.support.StopWatch;
 import de.tudarmstadt.ukp.dkpro.core.api.lexmorph.type.pos.POS;
 import de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence;
 import de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token;
@@ -114,118 +115,122 @@ public class BratRenderer
             JCas aJCas, AnnotationSchemaService aAnnotationService,
             ColoringStrategy aColoringStrategy)
     {
-        aResponse.setRtlMode(ScriptDirection.RTL.equals(aState.getScriptDirection()));
-        aResponse.setFontZoom(aState.getPreferences().getFontZoom());
+        try (StopWatch timer = new StopWatch("brat render")) {
+            aResponse.setRtlMode(ScriptDirection.RTL.equals(aState.getScriptDirection()));
+            aResponse.setFontZoom(aState.getPreferences().getFontZoom());
 
-        // Render invisible baseline annotations (sentence, tokens)
-        renderTokenAndSentence(aJCas, aResponse, aState);
-        
-        // Render visible (custom) layers
-        Map<String[], Queue<String>> colorQueues = new HashMap<>();
-        for (AnnotationLayer layer : aAnnotationService.listAnnotationLayer(aState.getProject())) {
-            ColoringStrategy coloringStrategy = aColoringStrategy != null ? aColoringStrategy
-                    : ColoringStrategy.getStrategy(aAnnotationService, layer,
-                            aState.getPreferences(), colorQueues);
-            
-            // If the layer is not included in the rendering, then we skip here - but only after
-            // we have obtained a coloring strategy for this layer and thus secured the layer
-            // color. This ensures that the layer colors do not change depending on the number
-            // of visible layers.
-            if (!aVDoc.getAnnotationLayers().contains(layer)) {
-                continue;
+            // Render invisible baseline annotations (sentence, tokens)
+            renderTokenAndSentence(aJCas, aResponse, aState);
+
+            // Render visible (custom) layers
+            Map<String[], Queue<String>> colorQueues = new HashMap<>();
+            for (AnnotationLayer layer : aAnnotationService
+                    .listAnnotationLayer(aState.getProject())) {
+                ColoringStrategy coloringStrategy = aColoringStrategy != null ? aColoringStrategy
+                        : ColoringStrategy.getStrategy(aAnnotationService, layer,
+                                aState.getPreferences(), colorQueues);
+
+                // If the layer is not included in the rendering, then we skip here - but only after
+                // we have obtained a coloring strategy for this layer and thus secured the layer
+                // color. This ensures that the layer colors do not change depending on the number
+                // of visible layers.
+                if (!aVDoc.getAnnotationLayers().contains(layer)) {
+                    continue;
+                }
+
+                TypeAdapter typeAdapter = aAnnotationService.getAdapter(layer);
+
+                for (VSpan vspan : aVDoc.spans(layer.getId())) {
+                    List<Offsets> offsets = toOffsets(vspan.getRanges());
+                    String bratLabelText = TypeUtil.getUiLabelText(typeAdapter,
+                            vspan.getFeatures());
+                    String bratHoverText = TypeUtil.getUiHoverText(typeAdapter,
+                            vspan.getHoverFeatures());
+                    String color;
+                    if (vspan.getColorHint() == null) {
+                        color = getColor(vspan, coloringStrategy, bratLabelText);
+                    }
+                    else {
+                        color = vspan.getColorHint();
+                    }
+
+                    if (DEBUG) {
+                        bratHoverText = vspan.getOffsets() + "\n" + bratHoverText;
+                    }
+
+                    aResponse.addEntity(new Entity(vspan.getVid(), vspan.getType(), offsets,
+                            bratLabelText, color, bratHoverText));
+                }
+
+                for (VArc varc : aVDoc.arcs(layer.getId())) {
+                    String bratLabelText;
+                    if (varc.getLabelHint() == null) {
+                        bratLabelText = TypeUtil.getUiLabelText(typeAdapter, varc.getFeatures());
+                    }
+                    else {
+                        bratLabelText = varc.getLabelHint();
+                    }
+
+                    String color;
+                    if (varc.getColorHint() == null) {
+                        color = getColor(varc, coloringStrategy, bratLabelText);
+                    }
+                    else {
+                        color = varc.getColorHint();
+                    }
+                    aResponse.addRelation(new Relation(varc.getVid(), varc.getType(),
+                            getArgument(varc.getSource(), varc.getTarget()), bratLabelText, color));
+                }
             }
 
-            TypeAdapter typeAdapter = aAnnotationService.getAdapter(layer);
-            
-            for (VSpan vspan : aVDoc.spans(layer.getId())) {
-                List<Offsets> offsets = toOffsets(vspan.getRanges());
-                String bratLabelText = TypeUtil.getUiLabelText(typeAdapter, vspan.getFeatures());
-                String bratHoverText = TypeUtil.getUiHoverText(typeAdapter, 
-                        vspan.getHoverFeatures());
-                String color;
-                if (vspan.getColorHint() == null) {
-                    color = getColor(vspan, coloringStrategy, bratLabelText);
-                } else {
-                    color = vspan.getColorHint();
+            List<Sentence> sentences = new ArrayList<>(select(aJCas, Sentence.class));
+            for (VComment vcomment : aVDoc.comments()) {
+                String type;
+                switch (vcomment.getCommentType()) {
+                case ERROR:
+                    type = AnnotationComment.ANNOTATION_ERROR;
+                    break;
+                case INFO:
+                    type = AnnotationComment.ANNOTATOR_NOTES;
+                    break;
+                case YIELD:
+                    type = "Yield";
+                    break;
+                default:
+                    type = AnnotationComment.ANNOTATOR_NOTES;
+                    break;
                 }
-                
-                if (DEBUG) {
-                    bratHoverText = vspan.getOffsets() + "\n" + bratHoverText;
-                }
-                
-                aResponse.addEntity(new Entity(vspan.getVid(), vspan.getType(), offsets,
-                        bratLabelText, color, bratHoverText));
-            }
 
-            for (VArc varc : aVDoc.arcs(layer.getId())) {
-                String bratLabelText;
-                if (varc.getLabelHint() == null) {
-                    bratLabelText = TypeUtil.getUiLabelText(typeAdapter, varc.getFeatures());
+                AnnotationFS fs;
+                if (!vcomment.getVid().isSynthetic() && ((fs = selectByAddr(aJCas,
+                        vcomment.getVid().getId())) instanceof Sentence)) {
+                    int index = sentences.indexOf(fs) + 1;
+                    aResponse.addComment(new SentenceComment(index, type, vcomment.getComment()));
                 }
                 else {
-                    bratLabelText = varc.getLabelHint();
+                    aResponse.addComment(
+                            new AnnotationComment(vcomment.getVid(), type, vcomment.getComment()));
                 }
-                
-                String color;
-                if (varc.getColorHint() == null) {
-                    color = getColor(varc, coloringStrategy, bratLabelText);
-                } else {
-                    color = varc.getColorHint();
+            }
+
+            // Render markers
+            for (VMarker vmarker : aVDoc.getMarkers()) {
+                if (vmarker instanceof VAnnotationMarker) {
+                    VAnnotationMarker marker = (VAnnotationMarker) vmarker;
+                    aResponse.addMarker(new AnnotationMarker(vmarker.getType(), marker.getVid()));
                 }
-                aResponse.addRelation(new Relation(varc.getVid(), varc.getType(),
-                        getArgument(varc.getSource(), varc.getTarget()), bratLabelText, color));
-            }
-        }
-        
-        List<Sentence> sentences = new ArrayList<>(select(aJCas, Sentence.class));
-        for (VComment vcomment : aVDoc.comments()) {
-            String type;
-            switch (vcomment.getCommentType()) {
-            case ERROR:
-                type = AnnotationComment.ANNOTATION_ERROR;
-                break;
-            case INFO:
-                type = AnnotationComment.ANNOTATOR_NOTES;
-                break;
-            case YIELD:
-                type = "Yield";
-                break;
-            default:
-                type = AnnotationComment.ANNOTATOR_NOTES;
-                break;
-            }
-            
-            AnnotationFS fs;
-            if (
-                    !vcomment.getVid().isSynthetic() && 
-                    ((fs = selectByAddr(aJCas, vcomment.getVid().getId())) instanceof Sentence)
-            ) {
-                int index = sentences.indexOf(fs) + 1;
-                aResponse.addComment(new SentenceComment(index, type, vcomment.getComment()));
-            }
-            else {
-                aResponse.addComment(
-                        new AnnotationComment(vcomment.getVid(), type, vcomment.getComment()));
-            }
-        }
-        
-        // Render markers
-        for (VMarker vmarker : aVDoc.getMarkers()) {
-            if (vmarker instanceof VAnnotationMarker) {
-                VAnnotationMarker marker = (VAnnotationMarker) vmarker;
-                aResponse.addMarker(new AnnotationMarker(vmarker.getType(), marker.getVid()));
-            }
-            else if (vmarker instanceof VSentenceMarker) {
-                VSentenceMarker marker = (VSentenceMarker) vmarker;
-                aResponse.addMarker(new SentenceMarker(vmarker.getType(), marker.getIndex()));
-            }
-            else if (vmarker instanceof VTextMarker) {
-                VTextMarker marker = (VTextMarker) vmarker;
-                aResponse.addMarker(
-                        new TextMarker(marker.getType(), marker.getBegin(), marker.getEnd()));
-            }
-            else {
-                LOG.warn("Unknown how to render marker: [" + vmarker + "]");
+                else if (vmarker instanceof VSentenceMarker) {
+                    VSentenceMarker marker = (VSentenceMarker) vmarker;
+                    aResponse.addMarker(new SentenceMarker(vmarker.getType(), marker.getIndex()));
+                }
+                else if (vmarker instanceof VTextMarker) {
+                    VTextMarker marker = (VTextMarker) vmarker;
+                    aResponse.addMarker(
+                            new TextMarker(marker.getType(), marker.getBegin(), marker.getEnd()));
+                }
+                else {
+                    LOG.warn("Unknown how to render marker: [" + vmarker + "]");
+                }
             }
         }
     }

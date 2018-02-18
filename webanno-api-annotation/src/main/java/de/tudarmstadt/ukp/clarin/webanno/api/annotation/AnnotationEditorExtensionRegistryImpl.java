@@ -39,6 +39,7 @@ import de.tudarmstadt.ukp.clarin.webanno.api.annotation.exception.AnnotationExce
 import de.tudarmstadt.ukp.clarin.webanno.api.annotation.model.AnnotatorState;
 import de.tudarmstadt.ukp.clarin.webanno.api.annotation.model.VID;
 import de.tudarmstadt.ukp.clarin.webanno.api.annotation.rendering.model.VDocument;
+import de.tudarmstadt.ukp.clarin.webanno.support.StopWatch;
 
 @Component
 public class AnnotationEditorExtensionRegistryImpl
@@ -113,7 +114,9 @@ public class AnnotationEditorExtensionRegistryImpl
     public void fireRender(JCas aJCas, AnnotatorState aModelObject, VDocument aVdoc)
     {
         for (AnnotationEditorExtension ext: getExtensions()) {
-            ext.render(aJCas, aModelObject, aVdoc);
+            try (StopWatch timer = new StopWatch("render extensions [" + ext.getBeanName() + "]")) {
+                ext.render(aJCas, aModelObject, aVdoc);
+            }
         }
     }
 }

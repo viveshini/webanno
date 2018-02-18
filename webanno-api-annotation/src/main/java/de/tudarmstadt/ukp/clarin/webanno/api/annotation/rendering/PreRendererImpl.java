@@ -28,6 +28,7 @@ import de.tudarmstadt.ukp.clarin.webanno.api.annotation.layer.LayerSupportRegist
 import de.tudarmstadt.ukp.clarin.webanno.api.annotation.rendering.model.VDocument;
 import de.tudarmstadt.ukp.clarin.webanno.model.AnnotationFeature;
 import de.tudarmstadt.ukp.clarin.webanno.model.AnnotationLayer;
+import de.tudarmstadt.ukp.clarin.webanno.support.StopWatch;
 
 @Component
 public class PreRendererImpl implements PreRenderer
@@ -48,10 +49,12 @@ public class PreRendererImpl implements PreRenderer
             List<AnnotationLayer> aLayers)
     {
         // Render (custom) layers
-        for (AnnotationLayer layer : aLayers) {
-            List<AnnotationFeature> features = annotationService.listAnnotationFeature(layer);
-            Renderer renderer = layerSupportRegistry.getLayerSupport(layer).getRenderer(layer);
-            renderer.render(aJCas, features, aResponse, windowBeginOffset, windowEndOffset);
+        try (StopWatch timer = new StopWatch("preRender")) {
+            for (AnnotationLayer layer : aLayers) {
+                List<AnnotationFeature> features = annotationService.listAnnotationFeature(layer);
+                Renderer renderer = layerSupportRegistry.getLayerSupport(layer).getRenderer(layer);
+                renderer.render(aJCas, features, aResponse, windowBeginOffset, windowEndOffset);
+            }
         }
     }
 }
