@@ -70,7 +70,7 @@ public class LoginPage
     private static final long serialVersionUID = -333578034707672294L;
 
     private static final String ADMIN_DEFAULT_USERNAME = "admin";
-    private static final String ADMIN_DEFAULT_PASSWORD = "admin";
+    private static final String ADMIN_DEFAULT_PASSWORDHASH = "admin";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -102,7 +102,7 @@ public class LoginPage
         if (userRepository.list().isEmpty()) {
             User admin = new User();
             admin.setUsername(ADMIN_DEFAULT_USERNAME);
-            admin.setPassword(ADMIN_DEFAULT_PASSWORD);
+            admin.setPassword(ADMIN_DEFAULT_PASSWORDHASH);
             admin.setEnabled(true);
             admin.setRoles(EnumSet.of(Role.ROLE_ADMIN, Role.ROLE_USER));
             userRepository.create(admin);
@@ -158,7 +158,7 @@ public class LoginPage
     {
         private static final long serialVersionUID = 1L;
         private String username;
-        private String password;
+        private String passwordhash;
         private String urlfragment;
 
         public LoginForm(String id)
