@@ -88,6 +88,8 @@
     <tomcat.version>9.0.43</tomcat.version>
     <servlet-api.version>4.0.1</servlet-api.version>
     <mysql-driver.version>8.0.20</mysql-driver.version>
+    <sonar.organization>viveshini</sonar.organization>
+  <sonar.host.url>https://sonarcloud.io</sonar.host.url>
   </properties>
   <repositories>
     <!--
