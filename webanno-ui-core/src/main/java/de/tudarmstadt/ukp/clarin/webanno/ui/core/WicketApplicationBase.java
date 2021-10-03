@@ -157,6 +157,7 @@ public abstract class WicketApplicationBase
 
         initServerTimeReporting();
     }
+    //
 
     private void initPageRequestTracker()
     {
