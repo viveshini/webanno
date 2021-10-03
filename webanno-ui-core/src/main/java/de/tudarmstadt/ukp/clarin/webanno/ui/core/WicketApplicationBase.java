@@ -301,10 +301,7 @@ public abstract class WicketApplicationBase
         }
     }
 
-    protected String getLogoLocation()
-    {
-        return "/de/tudarmstadt/ukp/clarin/webanno/ui/core/logo/logo.png";
-    }
+    protected String getLogoLocation = "/de/tudarmstadt/ukp/clarin/webanno/ui/core/logo/logo.png";
 
     protected void initDefaultPageMounts()
     {
