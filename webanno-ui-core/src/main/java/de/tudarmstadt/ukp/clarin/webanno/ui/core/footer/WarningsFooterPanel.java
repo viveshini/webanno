@@ -55,7 +55,7 @@ public class WarningsFooterPanel
     public WarningsFooterPanel(String aId)
     {
         super(aId);
-
+        @SuppressWarnings("deprecation")
         Properties settings = SettingsUtil.getSettings();
 
         // set up warnings shown when using an embedded DB or some unsupported browser
