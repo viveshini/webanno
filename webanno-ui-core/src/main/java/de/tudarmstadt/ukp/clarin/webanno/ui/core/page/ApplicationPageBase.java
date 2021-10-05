@@ -54,7 +54,7 @@ import de.tudarmstadt.ukp.clarin.webanno.ui.core.footer.FooterItemRegistry;
 public abstract class ApplicationPageBase
     extends WebPage
 {
-    private final static Logger LOG = LoggerFactory.getLogger(ApplicationPageBase.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ApplicationPageBase.class);
 
     private static final long serialVersionUID = -1690130604031181803L;
 
