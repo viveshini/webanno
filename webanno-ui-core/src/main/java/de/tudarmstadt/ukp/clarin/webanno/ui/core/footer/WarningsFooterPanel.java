@@ -56,7 +56,7 @@ public class WarningsFooterPanel
     {
         super(aId);
 
-        Properties settings = SettingsUtil.getSettings();
+        Properties settings = SettingsUtil.get_Settings();
 
         // set up warnings shown when using an embedded DB or some unsupported browser
         boolean isBrowserWarningVisible = isBrowserWarningVisible(settings);
