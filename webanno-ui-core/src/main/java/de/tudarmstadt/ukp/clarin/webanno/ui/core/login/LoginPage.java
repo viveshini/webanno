@@ -169,7 +169,7 @@ public class LoginPage
             add(new RequiredTextField<String>("username"));
             add(new PasswordTextField("password"));
             add(new HiddenField<>("urlfragment"));
-            Properties settings = SettingsUtil.getSettings();
+            Properties settings = SettingsUtil.get_Settings();
             String loginMessage = settings.getProperty(SettingsUtil.CFG_LOGIN_MESSAGE);
             add(new Label("loginMessage", loginMessage).setEscapeModelStrings(false)
                     .add(visibleWhen(() -> isNotBlank(loginMessage))));
