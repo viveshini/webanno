@@ -297,14 +297,11 @@ public abstract class WicketApplicationBase
             mountResource("/assets/logo.png", new SharedResourceReference("logo"));
         }
         else {
-            mountResource("/assets/logo.png", new PackageResourceReference(getLogoLocation()));
+            mountResource("/assets/logo.png", new PackageResourceReference(get_Logo_Location));
         }
     }
 
-    protected String getLogoLocation()
-    {
-        return "/de/tudarmstadt/ukp/clarin/webanno/ui/core/logo/logo.png";
-    }
+   protected String get_Logo_Location = "/de/tudarmstadt/ukp/clarin/webanno/ui/core/logo/logo.png"; 
 
     protected void initDefaultPageMounts()
     {
