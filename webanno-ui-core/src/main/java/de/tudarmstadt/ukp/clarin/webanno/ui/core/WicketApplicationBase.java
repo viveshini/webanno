@@ -281,7 +281,7 @@ public abstract class WicketApplicationBase
 
     protected void initShowExceptionPage()
     {
-        Properties settings = SettingsUtil.getSettings();
+        Properties settings = SettingsUtil.get_Settings();
         if ("true".equalsIgnoreCase(settings.getProperty("debug.showExceptionPage"))) {
             getExceptionSettings()
                     .setUnexpectedExceptionDisplay(ExceptionSettings.SHOW_EXCEPTION_PAGE);
@@ -290,7 +290,7 @@ public abstract class WicketApplicationBase
 
     protected void initLogoReference()
     {
-        Properties settings = SettingsUtil.getSettings();
+        Properties settings = SettingsUtil.get_Settings();
         String logoValue = settings.getProperty(SettingsUtil.CFG_STYLE_LOGO);
         if (StringUtils.isNotBlank(logoValue) && new File(logoValue).canRead()) {
             getSharedResources().add("logo", new FileSystemResource(new File(logoValue)));
@@ -348,7 +348,7 @@ public abstract class WicketApplicationBase
 
     protected void initServerTimeReporting()
     {
-        Properties settings = SettingsUtil.getSettings();
+        Properties settings = SettingsUtil.get_Settings();
         if (!DEVELOPMENT.equals(getConfigurationType())
                 && !"true".equalsIgnoreCase(settings.getProperty("debug.sendServerSideTimings"))) {
             return;
