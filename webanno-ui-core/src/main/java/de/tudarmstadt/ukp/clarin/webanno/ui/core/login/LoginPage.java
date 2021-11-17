@@ -45,6 +45,7 @@ import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.parameter.UrlRequestParametersAdapter;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -70,7 +71,7 @@ public class LoginPage
     private static final long serialVersionUID = -333578034707672294L;
 
     private static final String ADMIN_DEFAULT_USERNAME = "admin";
-    private static final String ADMIN_DEFAULT_PASSWORD = "admin";
+    private static final String ADMIN_DEFAULT_PASSWORD = RandomStringUtils.randomAlphanumeric(10);
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
