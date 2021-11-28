@@ -141,6 +141,16 @@
       <scope>runtime</scope>
     </dependency>
     <dependency>
+    <groupId>com.sun.mail</groupId>
+    <artifactId>javax.mail</artifactId>
+    <version>1.6.0</version>
+    </dependency>
+    <dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-lang3</artifactId>
+    <version>3.8.1</version>
+    </dependency>
+    <dependency>
       <!-- Route Log4J v1 over SLF4J -->
       <groupId>org.slf4j</groupId>
       <artifactId>log4j-over-slf4j</artifactId>
