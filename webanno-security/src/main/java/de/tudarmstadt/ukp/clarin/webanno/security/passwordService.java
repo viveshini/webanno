@@ -42,7 +42,7 @@ import de.tudarmstadt.ukp.clarin.webanno.security.model.User;
 @Component("userRepository")
 public class passwordService implements UserDao
     {
-public String resetCustomerPassword(String email) {
+public String resetUserPassword(String aUsername) {
     Username aUsername = UserDAO.findByUsername(aUsername);
      
     String randomPassword = RandomStringUtils.randomAlphanumeric(10);
