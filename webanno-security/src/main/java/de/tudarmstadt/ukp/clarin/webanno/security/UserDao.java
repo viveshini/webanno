@@ -34,6 +34,10 @@ public interface UserDao
      * Return the name of the current user
      */
     String getCurrentUsername();
+    /**
+     * Reset the user password
+     */
+    public String resetUserPassword(String aUsername);
 
     /**
      * Create a new {@link User}
