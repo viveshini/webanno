@@ -1,4 +1,4 @@
-package com.bookstore.controller.frontend;
+
  
 import java.io.IOException;
  
@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
  
-import com.bookstore.service.CustomerServices;
+package de.tudarmstadt.ukp.clarin.webanno.security;
  
 /**
  * A Java Servlet to handle requests to reset password for customer
