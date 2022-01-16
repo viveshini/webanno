@@ -197,9 +197,6 @@ public class LoginPage
 
         private void setDefaultResponsePageIfNecessary(String aRedirectUrl)
         {
-            // This does not work because it was Spring Security that intercepted the access, not
-            // Wicket continueToOriginalDestination();
-
             if (aRedirectUrl == null || aRedirectUrl.contains(".IBehaviorListener.")
                     || aRedirectUrl.contains("-logoutPanel-")) {
                 log.debug("Redirecting to welcome page");
