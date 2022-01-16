@@ -51,6 +51,7 @@ import org.apache.wicket.resource.loader.IStringResourceLoader;
 import org.apache.wicket.resource.loader.NestedStringResourceLoader;
 import org.apache.wicket.settings.ExceptionSettings;
 import org.slf4j.MDC;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -315,7 +316,7 @@ public abstract class WicketApplicationBase
         AnnotatedMountList mounts = new AnnotatedMountScanner().scanPackage("de.tudarmstadt.ukp");
         for (IRequestMapper mapper : mounts) {
             if (mapper instanceof HomePageMapper) {
-                System.out.println(mapper);
+                logger.log(mapper);
             }
         }
         mounts.mount(this);
