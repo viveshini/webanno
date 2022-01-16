@@ -137,10 +137,6 @@ public abstract class WicketApplicationBase
         // Allow nested string resource resolving using "#(key)"
         initNestedStringResourceLoader();
 
-        // // This should avoid some application-reloading while working on I18N
-        // getResourceSettings().setThrowExceptionOnMissingResource(false);
-        // getResourceSettings().setCachingStrategy(new NoOpResourceCachingStrategy());
-
         initWebFrameworks();
 
         initDefaultPageMounts();
